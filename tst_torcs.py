@@ -1,7 +1,7 @@
 import my_gym_torcs
 import gym
 import time
-
+import numpy as np
 
 env = gym.make('torcs-v0')
 
@@ -11,7 +11,7 @@ for ep in range(max_ep):
     obs = env.reset()
     for t in range(max_t):
         print t
-        action = env.action_space.sample()
+        action = np.array([0,1,0])
         start = time.time()
         obs, reward, done, info = env.step(action)
         end = time.time()

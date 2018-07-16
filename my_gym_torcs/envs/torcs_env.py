@@ -97,7 +97,7 @@ class TorcsEnv(gym.Env):
     def reset_torcs(self):
         os.system('pkill torcs')
         time.sleep(0.5)
-        os.system('torcs -T -nodamage -nofuel -nolaptime -vision &')
+        os.system('torcs -nodamage -nofuel -nolaptime -vision &')
         time.sleep(0.5)
         os.system('sh autostart.sh')
         time.sleep(0.5)
