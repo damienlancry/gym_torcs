@@ -2,10 +2,11 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
+import os
+os.chdir('/homes/drl17/Documents/Project/Torcs_Project/gym-torcs/my_gym_torcs/envs')
 import snakeoil3_gym as snakeoil3
 import copy
 import collections as col
-import os
 import time
 import numpy as np
 
@@ -42,7 +43,6 @@ class TorcsEnv(gym.Env):
             collision = -1
         else:
             collision = 0
-        print 'collision: ',collision
         return self.ob.speedX + collision # reward function from DEEPMIND
 
     def _get_state(self):
