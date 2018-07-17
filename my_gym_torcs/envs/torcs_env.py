@@ -25,10 +25,11 @@ class TorcsEnv(gym.Env):
 
     def step(self, action): #takes 0.2 s => frameskip = 10
         self._take_action(action)
-        ob     = self._get_state()
-        reward = self._get_reward(ob)
-        done   = self._is_done(ob)
-        return ob, reward, done, {}
+        self.prev_ob = self.ob
+        self.ob     = self._get_state()
+        reward = self._get_reward()
+        done   = self._is_done()
+        return self.ob, reward, done, {}
 
     def _take_action(self,action):
         self.client.R.d["steer"] = action[0]
@@ -36,10 +37,13 @@ class TorcsEnv(gym.Env):
         self.client.R.d["brake"] = action[2]
         self.client.respond_to_server()
 
-    def _get_reward(self,ob):
-        sp = ob.speedX
-        return sp*np.cos(ob.angle) - np.abs(sp*np.sin(ob.angle)) \
-               - sp * np.abs(ob.trackPos)
+    def _get_reward(self):
+        if self.ob.damage > self.prev_ob.damage:
+            collision = -1
+        else:
+            collision = 0
+        print 'collision: ',collision
+        return self.ob.speedX + collision # reward function from DEEPMIND
 
     def _get_state(self):
         self.client.get_servers_input()
@@ -51,7 +55,8 @@ class TorcsEnv(gym.Env):
                  'track',
                  'trackPos',
                  'wheelSpinVel',
-                 'img']
+                 'img',
+                 'damage']
         Observation = col.namedtuple('Observation', names)
         # Get RGB from observation
         image_rgb = self.obs_vision_to_image_rgb(raw_obs['img'])
@@ -65,7 +70,8 @@ class TorcsEnv(gym.Env):
                            track=np.array(raw_obs['track'], dtype=np.float32)/200.,
                            trackPos=np.array(raw_obs['trackPos'], dtype=np.float32)/1.,
                            wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32),
-                           img=image_rgb)
+                           img=image_rgb,
+                           damage = np.array(raw_obs['damage'], dtype=np.float32))
 
     def obs_vision_to_image_rgb(self, obs_image_vec):
         image_vec =  obs_image_vec
@@ -78,15 +84,16 @@ class TorcsEnv(gym.Env):
         b = np.array(b).reshape(sz)
         return np.array([r, g, b], dtype=np.uint8)
 
-    def _is_done(self,ob):
-        self.client.R.d['meta'] =  np.cos(ob.angle) < 0
+    def _is_done(self):
+        self.client.R.d['meta'] =  np.cos(self.ob.angle) < 0
         return self.client.R.d['meta']
 
     def reset(self,relauch=False):
         self.time_step = 0
         self.reset_torcs()
         self.client = snakeoil3.Client(p=3101, vision=True)
-        return self._get_state()
+        self.ob = self._get_state()
+        return self.ob
 
     def render(self, mode='human', close=False):
         pass
@@ -97,7 +104,7 @@ class TorcsEnv(gym.Env):
     def reset_torcs(self):
         os.system('pkill torcs')
         time.sleep(0.5)
-        os.system('torcs -nodamage -nofuel -nolaptime -vision &')
+        os.system('torcs -nofuel -nolaptime -vision &')
         time.sleep(0.5)
         os.system('sh autostart.sh')
         time.sleep(0.5)
