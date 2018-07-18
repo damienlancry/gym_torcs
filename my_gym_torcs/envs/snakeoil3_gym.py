@@ -175,9 +175,9 @@ class Client():
                     os.system('pkill torcs')
                     time.sleep(1.0)
                     if self.vision is False:
-                        os.system('torcs -nofuel -nodamage -nolaptime &')
+                        os.system('torcs -nofuel -nolaptime &')
                     else:
-                        os.system('torcs -nofuel -nodamage -nolaptime -vision &')
+                        os.system('torcs -nofuel -nolaptime -vision &')
 
                     time.sleep(1.0)
                     os.system('sh autostart.sh')
