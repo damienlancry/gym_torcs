@@ -84,15 +84,17 @@ class TorcsEnv(gym.Env):
         return bgr
 
     def _is_done(self):
-        self.client.R.d['meta'] =  np.cos(self.ob.angle) < 0
+        self.client.R.d['meta'] =  np.cos(self.state.angle) < 0
         return self.client.R.d['meta']
 
     def reset(self,relauch=False):
         self.time_step = 0
         self.reset_torcs()
         self.client = snakeoil3.Client(p=3101, vision=True)
-        self.ob = self._get_state()
-        return self.ob
+        self.state  = self._get_state()
+        self.ob = self.ob_1 = self.ob_2 = self.state.img
+        self.obs = np.concatenate([self.ob, self.ob_1, self.ob_2],axis=2)
+        return self.obs
 
     def render(self, mode='human', close=False):
         pass
