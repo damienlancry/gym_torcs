@@ -33,7 +33,13 @@ class TorcsEnv(gym.Env):
             self.collision = 0
         reward = self._get_reward()
         done   = self._is_done()
-        return self.ob, reward, done, {}
+        self.ob_2 = self.ob_1
+        self.ob_1 = self.ob
+        self.ob   = self.state.img
+        print(self.ob.shape)
+        self.obs = np.concatenate([self.ob, self.ob_1, self.ob_2],axis=2)
+        print(self.obs.shape)
+        return self.obs, reward, done, {}
 
     def _take_action(self,action):
         self.client.R.d["steer"] = action[0]
