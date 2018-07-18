@@ -1,10 +1,9 @@
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
+from gym import spaces
 import numpy as np
 import os
-os.chdir('/homes/drl17/Documents/Project/Torcs_Project/gym-torcs/my_gym_torcs/envs')
-import snakeoil3_gym as snakeoil3
+# os.chdir('/homes/drl17/Documents/Project/Torcs_Project/gym-torcs/')
+from my_gym_torcs.envs import snakeoil3_gym as snakeoil3
 import copy
 import collections as col
 import time
