@@ -73,15 +73,15 @@ class TorcsEnv(gym.Env):
                            damage = np.array(raw_obs['damage'], dtype=np.float32))
 
     def obs_vision_to_image_rgb(self, obs_image_vec):
-        image_vec =  obs_image_vec
-        r = image_vec[0:len(image_vec):3]
-        g = image_vec[1:len(image_vec):3]
-        b = image_vec[2:len(image_vec):3]
-        sz = (64, 64)
-        r = np.array(r).reshape(sz)
-        g = np.array(g).reshape(sz)
-        b = np.array(b).reshape(sz)
-        return np.array([r, g, b], dtype=np.uint8)
+        image_vec =  np.array(obs_image_vec,dtype=np.uint8)
+        sz  = (64, 64)
+        b   = np.flipud(image_vec[2:len(image_vec):3].reshape(sz))
+        g   = np.flipud(image_vec[1:len(image_vec):3].reshape(sz))
+        r   = np.flipud(image_vec[0:len(image_vec):3].reshape(sz))
+        bgr = np.stack([b,g,r],axis=2)
+        cv2.imshow('img', bgr)
+        cv2.waitKey(0)
+        return bgr
 
     def _is_done(self):
         self.client.R.d['meta'] =  np.cos(self.ob.angle) < 0
