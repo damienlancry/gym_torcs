@@ -19,10 +19,10 @@ class TorcsEnv(gym.Env):
 
     def __init__(self):
         self.initial_run  = True
-        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32)
-        high = np.array([1., np.inf, np.inf, np.inf, 1., np.inf, 1., np.inf, 255])
-        low = np.array([0., -np.inf, -np.inf, -np.inf, 0., -np.inf, 0., -np.inf, 0])
-        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
+        high = np.array([1.,1.,1.])
+        low  = np.array([-1.,-1.,-1.])
+        self.action_space = spaces.Box(low=low, high=high, dtype=np.float32)
+        self.observation_space = spaces.Box(low=0., high=255., shape=(64,64,9), dtype=np.float32)
 
     def step(self, action): #takes 0.2 s => frameskip = 10
         self._take_action(action)
