@@ -85,8 +85,6 @@ class TorcsEnv(gym.Env):
         g   = np.flipud(image_vec[1:len(image_vec):3].reshape(sz))
         r   = np.flipud(image_vec[0:len(image_vec):3].reshape(sz))
         bgr = np.stack([b,g,r],axis=2)
-        cv2.imshow('img', bgr)
-        cv2.waitKey(0)
         return bgr
 
     def _is_done(self):
