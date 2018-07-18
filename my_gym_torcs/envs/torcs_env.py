@@ -25,8 +25,12 @@ class TorcsEnv(gym.Env):
 
     def step(self, action): #takes 0.2 s => frameskip = 10
         self._take_action(action)
-        self.prev_ob = self.ob
-        self.ob     = self._get_state()
+        prev_damage = self.state.damage
+        self.state  = self._get_state()
+        if self.state.damage > prev_damage:
+            self.collision = -1
+        else:
+            self.collision = 0
         reward = self._get_reward()
         done   = self._is_done()
         return self.ob, reward, done, {}
@@ -38,11 +42,7 @@ class TorcsEnv(gym.Env):
         self.client.respond_to_server()
 
     def _get_reward(self):
-        if self.ob.damage > self.prev_ob.damage:
-            collision = -1
-        else:
-            collision = 0
-        return self.ob.speedX + collision # reward function from DEEPMIND
+        return self.state.speedX + self.collision # reward function from DEEPMIND
 
     def _get_state(self):
         self.client.get_servers_input()
