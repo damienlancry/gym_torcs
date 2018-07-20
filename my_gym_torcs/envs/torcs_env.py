@@ -131,9 +131,9 @@ class TorcsEnv(gym.Env):
         time.sleep(0.5)
 
     def suspend(self):
-        os.system('sh autostart.sh')
+        os.system('sh autosuspend.sh')
         time.sleep(0.5)
 
     def resume(self):
-        os.system('sh autostart.sh')
+        os.system('sh autosuspend.sh')
         time.sleep(0.5)
