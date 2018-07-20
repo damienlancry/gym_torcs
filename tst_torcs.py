@@ -10,12 +10,15 @@ max_t  = 50
 for ep in range(max_ep):
     obs = env.reset()
     for t in range(max_t):
-        print t
-        action = np.array([0,1,0])
+        print(t)
+        if t>10:
+            action = np.array([0,0,0])
+        else:
+            action = np.array([0,1,0])
         start = time.time()
         obs, reward, done, info = env.step(action)
         end = time.time()
-        print end - start
+        print(end - start)
         if done: break
 
 
