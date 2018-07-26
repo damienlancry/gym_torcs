@@ -116,7 +116,7 @@ def bargraph(x,mn,mx,w,c='X'):
     return '[%s]' % (nnc+npc+ppc+pnc)
 
 class Client():
-    def __init__(self,H=None,p=None,i=None,e=None,t=None,s=None,d=None,vision=False):
+    def __init__(self,H=None,p=None,i=None,e=None,t=None,s=None,d=None,vision=True):
         # If you don't like the option defaults,  change them here.
         self.vision = vision
 
@@ -175,9 +175,9 @@ class Client():
                     os.system('pkill torcs')
                     time.sleep(1.0)
                     if self.vision is False:
-                        os.system('torcs -nofuel -nolaptime &')
+                        os.system('torcs -nofuel -nodamage -nolaptime &')
                     else:
-                        os.system('torcs -nofuel -nolaptime -vision &')
+                        os.system('torcs -nofuel -nodamage -nolaptime -vision &')
 
                     time.sleep(1.0)
                     os.system('sh autostart.sh')
@@ -567,8 +567,8 @@ def drive_example(c):
 # ================ MAIN ================
 if __name__ == "__main__":
     C= Client(p=3101)
-    for step in range(C.maxSteps,0,-1):
+    for step in range(C.maxSteps):
         C.get_servers_input()
         drive_example(C)
         C.respond_to_server()
-        C.shutdown()
+    C.shutdown()
