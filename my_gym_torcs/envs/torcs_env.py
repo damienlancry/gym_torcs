@@ -23,13 +23,13 @@ class TorcsEnv(gym.Env):
 
     def step(self, action): #takes 0.2 s => frameskip = 10
         self._take_action(action)
-        prev_damage = self.state.damage
+        # prev_damage = self.state.damage
         self.state  = self._get_state()
-        if self.state.damage > prev_damage:
-            self.collision = -1
-            print('COLLISION')
-        else:
-            self.collision = 0
+        # if self.state.damage > prev_damage:
+            # self.collision = -1
+            # print('COLLISION')
+        # else:
+            # self.collision = 0
         self.reward = self._get_reward()
         done   = self._is_done()
         self.time_step += 1
@@ -46,7 +46,7 @@ class TorcsEnv(gym.Env):
         self.client.respond_to_server()
 
     def _get_reward(self):
-        return self.state.speedX*np.cos(self.state.angle) + self.collision # reward function from DEEPMIND
+        return self.state.speedX*np.cos(self.state.angle) #+ self.collision # reward function from DEEPMIND
 
     def _get_state(self):
         self.client.get_servers_input()
@@ -58,8 +58,8 @@ class TorcsEnv(gym.Env):
                  'track',
                  'trackPos',
                  'wheelSpinVel',
-                 'img',
-                 'damage']
+                 'img']
+                 # 'damage']
         Observation = col.namedtuple('Observation', names)
         # Get RGB from observation
         image_rgb = self.obs_vision_to_image_rgb(raw_obs['img'])
@@ -73,8 +73,8 @@ class TorcsEnv(gym.Env):
                            track=np.array(raw_obs['track'], dtype=np.float32)/200.,
                            trackPos=np.array(raw_obs['trackPos'], dtype=np.float32),
                            wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32),
-                           img=image_rgb,
-                           damage = np.array(raw_obs['damage'], dtype=np.float32))
+                           img=image_rgb)
+                           # damage = np.array(raw_obs['damage'], dtype=np.float32))
 
     def obs_vision_to_image_rgb(self, obs_image_vec):
         image_vec =  np.array(obs_image_vec)/255. # deepmind preprocessing
