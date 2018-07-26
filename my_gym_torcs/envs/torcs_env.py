@@ -17,7 +17,7 @@ class TorcsEnv(gym.Env):
     def __init__(self):
         self.initial_run  = True
         high = np.array([1.,1.,1.])
-        low  = np.array([-1.,0.,-1.])
+        low  = np.array([-1.,0.,0.])
         self.action_space      = spaces.Box(low=low, high=high, dtype=np.float32)
         self.observation_space = spaces.Box(low=0., high=1., shape=(64,64,9), dtype=np.float32)
 
@@ -87,9 +87,8 @@ class TorcsEnv(gym.Env):
 
     def _is_done(self):
         # Episode terminates if car running backward
-        if self.speed_limit_checking < self.time_step and self.state.speedX < 0:
+        if np.cos(self.state.angle) < -1/2:
             print('CAR RUNNING BACKWARD')
-            # self.client.R.d['meta'] = 1
             return True
         # Episode is terminated if the car is out of the track
         if abs(self.state.trackPos) > 1:
@@ -98,13 +97,13 @@ class TorcsEnv(gym.Env):
             # self.client.R.d['meta'] = 1
             return True
         # Episode terminates if the car is not driving fast enough
-        if self.speed_limit_checking < self.time_step:
-            speed = np.sqrt(self.state.speedX**2 + self.state.speedY**2)
-            if speed < self.speed_limit:
-                print("NO PROGRESS")
-                self.reward = -100
-                # self.client.R.d['meta'] = 1
-                return True
+        # if self.speed_limit_checking < self.time_step:
+        #     speed = np.sqrt(self.state.speedX**2 + self.state.speedY**2)
+        #     if speed < self.speed_limit:
+        #         print("NO PROGRESS")
+        #         self.reward = -100
+        #         # self.client.R.d['meta'] = 1
+        #         return True
         return False
 
     def reset(self):
