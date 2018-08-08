@@ -1,2 +1,19 @@
 # gym-torcs
-An OpenAI gym environment fully compatible with OpenAI baselines implementation of various Deep Reinforcement Learning algorithms (DDPG,A2C,TRPO,PPO,ACER,ACKTR...)
+An OpenAI gym environment fully compatible with OpenAI baselines implementation of various Deep Reinforcement Learning algorithms (DDPG,A2C,TRPO,PPO,ACER,ACKTR...). 
+
+## Requirements
+This environment is intended to use the modified version of TORCS that I made: https://github.com/DamienLancry/blocking_torcs
+You will also need to 
+``` 
+pip install gym
+```
+
+## Getting Started
+### Installation
+```
+git clone https://github.com/DamienLancry/gym_torcs
+```
+### Testing
+```
+python -m gym_torcs.gym_torcs.envs.torcs_env
+```
