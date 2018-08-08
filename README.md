@@ -3,7 +3,8 @@ An OpenAI gym environment fully compatible with OpenAI baselines implementation 
 
 
 ## Requirements
-This environment is intended to use the modified version of TORCS that I made: https://github.com/DamienLancry/blocking_torcs
+This environment is intended to use the modified version of TORCS that I made:<br />
+https://github.com/DamienLancry/blocking_torcs <br />
 You will also need to 
 ``` 
 pip install gym
