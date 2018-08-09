@@ -20,6 +20,6 @@ git clone https://github.com/DamienLancry/gym_torcs
 ```
 python -m gym_torcs.gym_torcs.envs.torcs_env
 ```
+It will not work if your configuration xml file is not correctly edited as explained in https://github.com/DamienLancry/blocking_torcs . So far I only experimented with one scr_server and no opponents.  
 ## Aknowledgement
 https://github.com/ugo-nama-kun/gym_torcs (For various reasons, this environment was not compatible with OpenAI baselines.)<br />
-http://xed.ch/project/snakeoil/index.html
