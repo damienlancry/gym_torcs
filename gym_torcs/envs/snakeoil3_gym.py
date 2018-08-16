@@ -7,10 +7,9 @@ import sys
 import getopt
 import os
 import time
+# import pprint
 PI= 3.14159265359
-
-data_size = 2**17
-
+data_size = 1024
 
 def clip(v,lo,hi):
     if v<lo: return lo
@@ -18,10 +17,7 @@ def clip(v,lo,hi):
     else: return v
 
 class Client():
-    def __init__(self,H=None,p=None,i=None,e=None,t=None,s=None,d=None,vision=True):
-        # If you don't like the option defaults,  change them here.
-        self.vision = vision
-
+    def __init__(self,port=3001):#i=None,e=None,t=None,s=None,d=None,vision=True):
         self.host= 'localhost'
         self.port= 3001
         self.sid= 'SCR'
@@ -29,55 +25,35 @@ class Client():
         self.trackname= 'unknown'
         self.stage= 3 # 0=Warm-up, 1=Qualifying 2=Race, 3=unknown <Default=3>
         self.debug= False
+        if port: self.port= port
         self.S= ServerState()
         self.R= DriverAction()
         self.setup_connection()
 
     def setup_connection(self):
         # == Set Up UDP Socket ==
-        try:
-            self.so= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        except socket.error as emsg:
-            print('Error: Could not create socket...')
-            sys.exit(-1)
+        self.so= socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # == Initialize Connection To Server ==
         self.so.settimeout(1)
-
-        n_fail = 5
         while True:
-            # This string establishes track sensor angles! You can customize them.
-            #a= "-90 -75 -60 -45 -30 -20 -15 -10 -5 0 5 10 15 20 30 45 60 75 90"
-            # xed- Going to try something a bit more aggressive...
-            a= "-45 -19 -12 -7 -4 -2.5 -1.7 -1 -.5 0 .5 1 1.7 2.5 4 7 12 19 45"
-
+            a= "-90 -80 -70 -60 -50 -40 -30 -20 -10 0 10 20 30 40 50 60 70 80 90"
             initmsg='%s(init %s)' % (self.sid,a)
-
-            try:
-                self.so.sendto(initmsg.encode(), (self.host, self.port))
-            except socket.error as emsg:
-                sys.exit(-1)
+            # try:
+            print('\033[93m'+'Client sending initmsg'+'\033[0m')
+            self.so.sendto(initmsg.encode(), (self.host, self.port))
+            # sys.exit("message sent")
+            # except socket.error as emsg:
+                # print('Client couldnt send initmsg')
+                # sys.exit(-1)
             sockdata= str()
             try:
-                sockdata,addr= self.so.recvfrom(data_size)
+                print("Client receiving identified")
+                sockdata,addr= self.so.recvfrom(16)
                 sockdata = sockdata.decode('utf-8')
             except socket.error as emsg:
-                print("Waiting for server on %d............" % self.port)
-                print("Count Down : " + str(n_fail))
-                if n_fail < 0:
-                    print("relaunch torcs")
-                    os.system('pkill torcs')
-                    time.sleep(1.0)
-                    if self.vision is False:
-                        os.system('torcs -nofuel -nodamage -nolaptime &')
-                    else:
-                        os.system('torcs -nofuel -nodamage -nolaptime -vision &')
+                continue
 
-                    time.sleep(1.0)
-                    os.system('sh autostart.sh')
-                    n_fail = 5
-                n_fail -= 1
-
-            identify = '***identified***'
+            identify = '***identified***' # 16 bits
             if identify in sockdata:
                 print("Client connected on %d.............." % self.port)
                 break
@@ -85,14 +61,13 @@ class Client():
 
     def get_servers_input(self):
         '''Server's input is stored in a ServerState object'''
-        if not self.so: return
         sockdata= str()
 
         while True:
             try:
-                # Receive server data
-                sockdata,addr= self.so.recvfrom(data_size)
+                sockdata,addr= self.so.recvfrom(data_size) # ~600 bits
                 sockdata = sockdata.decode('utf-8')
+                # print(len(sockdata.encode('utf-8')))
             except socket.error as emsg:
                 print('.', end=' ')
                 #print "Waiting for data on %d.............." % self.port
@@ -106,25 +81,25 @@ class Client():
                 self.shutdown()
                 return
             elif '***restart***' in sockdata:
-                # What do I do here?
                 print("Server has restarted the race on %d." % self.port)
-                # I haven't actually caught the server doing this.
                 self.shutdown()
                 return
             elif not sockdata: # Empty?
+                print('socket is empty')
                 continue       # Try again.
             else:
-                self.S.parse_server_str(sockdata)
-                if self.debug:
-                    sys.stderr.write("\x1b[2J\x1b[H") # Clear for steady output.
-                    print(self.S)
-                break # Can now return from this function.
+                self.S.str_to_dict(sockdata)
+                # print("Server sent %s"%sockdata)
+                # pprint.pprint(self.S.d)
+                break
 
     def respond_to_server(self):
         if not self.so: return
         try:
-            message = repr(self.R)
+            message = repr(self.R) #convert dict to string understandable by server
             self.so.sendto(message.encode(), (self.host, self.port))
+            # print("Client sent ",end='')
+            # print(message.encode())
         except socket.error as emsg:
             print("Error sending to server: %s Message %s" % (emsg[1],str(emsg[0])))
             sys.exit(-1)
@@ -146,27 +121,12 @@ class ServerState():
         self.servstr= str()
         self.d= dict()
 
-    def parse_server_str(self, server_string):
+    def str_to_dict(self, server_string):
         '''Parse the server string.'''
-        self.servstr= server_string.strip()[:-1]
-        sslisted= self.servstr.strip().lstrip('(').rstrip(')').split(')(')
-        for i in sslisted:
-            w= i.split(' ')
-            self.d[w[0]]= destringify(w[1:])
-
-    def __repr__(self):
-        # Comment the next line for raw output:
-        return self.fancyout()
-        # -------------------------------------
-        out= str()
-        for k in sorted(self.d):
-            strout= str(self.d[k])
-            if type(self.d[k]) is list:
-                strlist= [str(i) for i in self.d[k]]
-                strout= ', '.join(strlist)
-            out+= "%s: %s\n" % (k,strout)
-        return out
-
+        keyvalues_str = server_string[1:-2].split(')(')
+        for i in keyvalues_str:
+            kv= i.split(' ')
+            self.d[kv[0]]= float(kv[1]) if len(kv[1:]) == 1 else [float(item) for item in kv[1:]]
 
 class DriverAction():
     '''What the driver is intending to do (i.e. send to the server).
@@ -174,8 +134,6 @@ class DriverAction():
     (accel 1)(brake 0)(gear 1)(steer 0)(clutch 0)(focus 0)(meta 0) or
     (accel 1)(brake 0)(gear 1)(steer 0)(clutch 0)(focus -90 -45 0 45 90)(meta 0)'''
     def __init__(self):
-       self.actionstr= str()
-       # "d" is for data dictionary.
        self.d= { 'accel':0.2,
                    'brake':0,
                   'clutch':0,
@@ -185,17 +143,14 @@ class DriverAction():
                     'meta':0
                     }
 
-    def __repr__(self):
-        self.clip_to_limits()
+    def __repr__(self): #convert dict to string understandable by server
         out= str()
-        for k in self.d:
-            out+= '('+k+' '
-            v= self.d[k]
-            if not type(v) is list:
-                out+= '%.3f' % v
+        for key, value in self.d.items():
+            if not type(value) is list:
+                value_str = '%.3f' % value
             else:
-                out+= ' '.join([str(x) for x in v])
-            out+= ')'
+                value_str = ' '.join([str(x) for x in value])
+            out+='(%s %s)'%(key,value_str)
         return out
 
 
@@ -219,9 +174,9 @@ def drive_example(c):
        R['accel']+= 1/(S['speedX']+.1)
 
     # Traction Control System
-    if ((S['wheelSpinVel'][2]+S['wheelSpinVel'][3]) -
-       (S['wheelSpinVel'][0]+S['wheelSpinVel'][1]) > 5):
-       R['accel']-= .2
+    # if ((S['wheelSpinVel'][2]+S['wheelSpinVel'][3]) -
+    #    (S['wheelSpinVel'][0]+S['wheelSpinVel'][1]) > 5):
+    #    R['accel']-= .2
 
     # Automatic Transmission
     R['gear']=1
@@ -235,19 +190,26 @@ def drive_example(c):
         R['gear']=5
     if S['speedX']>170:
         R['gear']=6
+
+    #clip to limits
+    R['steer']= clip(R['steer'], 0, 0)
+    R['brake']= clip(R['brake'], 0, 0)
+    R['accel']= clip(R['accel'], 0, 0)
+    R['clutch']= clip(R['clutch'], 0, 1)
+    if R['gear'] not in [-1, 0, 1, 2, 3, 4, 5, 6]:
+        R['gear']= 0
+    if R['meta'] not in [0,1]:
+        R['meta']= 0
+    if type(R['focus']) is not list or min(R['focus'])<-180 or max(R['focus'])>180:
+        R['focus']= 0
     return
+
 
 # ================ MAIN ================
 if __name__ == "__main__":
-    C= Client(p=3001)
-    for step in range(C.maxSteps):
-        start=time.time()
+    C= Client()
+    while(True):
         C.get_servers_input()
-        end=time.time()
-        print(end-start)
         drive_example(C)
-        start=time.time()
         C.respond_to_server()
-        end=time.time()
-        print(end-start)
     C.shutdown()
