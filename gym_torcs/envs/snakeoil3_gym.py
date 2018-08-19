@@ -194,7 +194,6 @@ def drive_example(c):
     return
 
 
-# ================ MAIN ================
 if __name__ == "__main__":
     C = Client()
     while(True):
