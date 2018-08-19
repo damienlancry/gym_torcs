@@ -1,39 +1,40 @@
 import gym
 import numpy as np
 import os
-import collections as col
 import time
-import threading
-import subprocess
 from gym_torcs.gym_torcs.envs import snakeoil3_gym as snakeoil3
 from gym import spaces
 
+
 class TorcsEnv(gym.Env):
     collision = 0.
-    metadata  = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human']}
     global_step = 0
 
-    def __init__(self,frame_skip=5):
+    def __init__(self, frame_skip=5):
         self.frame_skip = frame_skip
-        high = np.array([ 1.,1.,1.])
-        low  = np.array([-1.,0.,0.])
-        self.action_space      = spaces.Box(low=low, high=high, dtype=np.float32)
-        high = np.concatenate((np.array([ np.pi,  np.inf,  np.inf,  1.]), 200.*np.ones(19)))#angle speedX speedY trackPos track
-        low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),-200.*np.ones(19)))
-        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
-
+        high = np.array([ 1., 1., 1.])
+        low  = np.array([-1., 0., 0.])
+        self.action_space = spaces.Box(low=low, high=high, dtype=np.float32)
+        high = np.concatenate((np.array([ np.pi,  np.inf,  np.inf,  1.]),
+                              200.*np.ones(19)))  # angle speedX speedY trackPos track
+        low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),
+                              -200.*np.ones(19)))
+        self.observation_space = spaces.Box(low=low, high=high,
+                                            dtype=np.float32)
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
         # prev_dist_raced= self.dist_raced
         prev_collision = self.collision
-        ob             = self._get_state()
-        self.dist_from_start= self.client.S.d["distFromStart"]
+        ob = self._get_state()
+        self.dist_from_start = self.client.S.d["distFromStart"]
         self.collision = self.client.S.d["damage"]
-        self.progress_check     = np.roll(self.progress_check,1)
-        self.progress_check[0] = self.dist_from_start #- prev_dist_raced
-        reward = ob[1]*np.cos(ob[0]) if prev_collision==self.collision else -1 #DEEPMIND
-        done   = self._is_done(ob)
+        self.progress_check = np.roll(self.progress_check, 1)
+        self.progress_check[0] = self.dist_from_start  # prev_dist_raced
+        reward = ob[1]*np.cos(ob[0]) if prev_collision == self.collision \
+            else -1  # DEEPMIND
+        done = self._is_done(ob)
         # print('Reward:',self.reward,end=' ')
         self.time_step += 1
         self.global_step += 1
@@ -41,30 +42,33 @@ class TorcsEnv(gym.Env):
         return ob, reward, done, {}
 
     def do_simulation(self, action, n_frames):
+        self.client.R.d["steer"] = action[0]
+        self.client.R.d["brake"] = action[1]
+        self.client.R.d["accel"] = action[2]
         for _ in range(n_frames):
-            # print('Action:',action)
-            self.client.R.d["steer"] = action[0]
-            self.client.R.d["brake"] = action[1]
-            self.client.R.d["accel"] = action[2]
             self.client.respond_to_server()
 
     def _get_state(self):
         self.client.get_servers_input()
-        raw_obs=self.client.S.d
-        ob = np.array([raw_obs[sensor] for sensor in ['angle','speedX','speedY','trackPos']])
-        ob = np.concatenate((ob,raw_obs['track']))
+        raw_obs = self.client.S.d
+        ob = np.array([raw_obs[sensor] for sensor in ['angle', 'speedX',
+                                                      'speedY', 'trackPos']])
+        ob = np.concatenate((ob, raw_obs['track']))
         return(ob)
 
-    def _is_done(self,ob):
+    def _is_done(self, ob):
         # Episode terminates if nan value BUG
         if np.isnan(self.dist_from_start):
             print('NAN Value')
             return True
-        # Episode is terminated if no progress is made along the track after 500 frames. #DEEPMIND
-        if self.dist_from_start==self.progress_check[-1]:
-            print('no progress was made along the track after 500 frames:'+
-                    '%d steps elapsed, reward: %d, global_step: %d, dist_from_start: %f'
-                    %(self.time_step,self.total_reward,self.global_step,self.dist_from_start))
+        # Episode is terminated if no progress is made along the track after
+        # 500 frames. #DEEPMIND
+        if self.dist_from_start == self.progress_check[-1]:
+            print('no progress was made along the track after 500 frames: \
+                  %d steps elapsed, reward: %d, global_step: %d, \
+                  dist_from_start: %f'
+                  % (self.time_step, self.total_reward, self.global_step,
+                     self.dist_from_start))
             return True
         return False
 
@@ -85,8 +89,8 @@ class TorcsEnv(gym.Env):
 
     def reset_torcs(self):
         os.system('pkill torcs')
-        os.system('torcs -nodamage -nofuel -nolaptime -r $HOME/.torcs/config/raceman/quickrace.xml &')
-        # time.sleep(.1)
+        os.system('torcs -nodamage -nofuel -nolaptime -r \
+                  $HOME/.torcs/config/raceman/quickrace.xml &')
 
 
 if __name__ == '__main__':
@@ -97,7 +101,7 @@ if __name__ == '__main__':
             # action = np.array([0.,1.,0.])
             action = env.action_space.sample()
             start = time.time()
-            o,r,d,i = env.step(action)
+            o, r, d, i = env.step(action)
             end = time.time()
             print(end-start)
     env.end()
