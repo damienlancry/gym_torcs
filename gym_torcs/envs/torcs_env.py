@@ -11,7 +11,8 @@ class TorcsEnv(gym.Env):
     metadata = {'render.modes': ['human']}
     global_step = 0
 
-    def __init__(self, frame_skip=5):
+    def __init__(self, frame_skip=5, port=3001):
+        self.port = port
         self.frame_skip = frame_skip
         high = np.array([ 1., 1., 1.])
         low  = np.array([-1., 0., 0.])
@@ -76,7 +77,7 @@ class TorcsEnv(gym.Env):
         self.time_step = 0
         self.total_reward = 0
         self.reset_torcs()
-        self.client = snakeoil3.Client()
+        self.client = snakeoil3.Client(port)
         ob = self._get_state()
         self.progress_check = 5759.*np.ones(500)
         return ob
@@ -95,6 +96,10 @@ class TorcsEnv(gym.Env):
 
 if __name__ == '__main__':
     env = gym.make('torcs-v0')
+    print(env.port)
+    env.__init__(port=3002)
+    print(env.port)
+    exit(0)
     for i in range(1):
         o = env.reset()
         for j in range(1000):
