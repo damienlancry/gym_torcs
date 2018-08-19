@@ -20,13 +20,11 @@ def clip(v, lo, hi):
 class Client():
     def __init__(self, port=3001):
         self.host = 'localhost'
-        self.port = 3001
         self.sid = 'SCR'
         self.maxEpisodes = 1  # Maximum number of learning episodes to perform
         self.trackname = 'unknown'
         self.stage = 3        # 0=Warm-up, 1=Qualifying 2=Race, 3=unknown
-        if port:
-            self.port = port
+        self.port = port
         self.S = ServerState()
         self.R = DriverAction()
         self.setup_connection()
