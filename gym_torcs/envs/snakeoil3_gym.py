@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # Inspired by snakeoil.py by Chris Edward
-
 # for Python3-based torcs python robot client
 import socket
 import sys
@@ -42,10 +41,11 @@ class Client():
             self.so.sendto(initmsg.encode(), (self.host, self.port))
             sockdata = str()
             try:
-                print("Client receiving identified")
                 sockdata, addr = self.so.recvfrom(16)
                 sockdata = sockdata.decode('utf-8')
+                print("Client receiving identified")
             except socket.error as emsg:
+                self.port += 1
                 continue
 
             identify = '***identified***'  # 16 bits
