@@ -4,7 +4,6 @@
 # for Python3-based torcs python robot client
 import socket
 import sys
-# import pprint
 PI = 3.14159265359
 data_size = 1024
 
