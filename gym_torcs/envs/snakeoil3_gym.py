@@ -45,7 +45,6 @@ class Client():
                 sockdata = sockdata.decode('utf-8')
                 print("Client receiving identified")
             except socket.error as emsg:
-                self.port += 1
                 continue
 
             identify = '***identified***'  # 16 bits

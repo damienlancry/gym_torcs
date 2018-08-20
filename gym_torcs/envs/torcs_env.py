@@ -77,7 +77,7 @@ class TorcsEnv(gym.Env):
         self.time_step = 0
         self.total_reward = 0
         self.reset_torcs()
-        self.client = snakeoil3.Client(port)
+        self.client = snakeoil3.Client(self.port)
         ob = self._get_state()
         self.progress_check = 5759.*np.ones(500)
         return ob
@@ -90,8 +90,8 @@ class TorcsEnv(gym.Env):
 
     def reset_torcs(self):
         os.system('pkill torcs')
-        os.system('torcs -nodamage -nofuel -nolaptime -r \
-                  $HOME/.torcs/config/raceman/quickrace.xml &')
+        os.system('torcs -nodamage -nofuel -nolaptime -p %d -r \
+                  $HOME/.torcs/config/raceman/quickrace.xml &' % self.port)
 
 
 if __name__ == '__main__':
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     print(env.port)
     env.__init__(port=3002)
     print(env.port)
-    exit(0)
+    # exit(0)
     for i in range(1):
         o = env.reset()
         for j in range(1000):
