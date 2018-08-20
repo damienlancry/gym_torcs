@@ -61,7 +61,8 @@ class Client():
                 sockdata, addr = self.so.recvfrom(data_size)  # ~600 bits
                 sockdata = sockdata.decode('utf-8')
             except socket.error as emsg:
-                print('.', end=' ')
+                print('Client %s did not receive server s input' % self.port)
+                continue
             if '***identified***' in sockdata:
                 print("Client connected on %d.............." % self.port)
                 continue
@@ -72,9 +73,6 @@ class Client():
                 print("Server has restarted the race on %d." % self.port)
                 self.shutdown()
                 return
-            elif not sockdata:  # Empty?
-                print('socket is empty')
-                continue       # Try again.
             else:
                 self.S.str_to_dict(sockdata)
                 break
