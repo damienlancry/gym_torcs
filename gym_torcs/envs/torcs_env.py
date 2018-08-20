@@ -35,8 +35,8 @@ class TorcsEnv(gym.Env):
         self.progress_check = np.roll(self.progress_check, 1)
         # self.progress_check[0] = self.dist_from_start  # prev_dist_raced
         self.progress_check[0] = self.dist_raced  # prev_dist_raced
-        collision = prev_damage != self.damage
-        reward = ob[1]*np.cos(ob[0]) if collision else -1  # DEEPMIND
+        no_collision = prev_damage == self.damage
+        reward = ob[1]*np.cos(ob[0]) if no_collision else -1  # DEEPMIND
         done = self._is_done(ob)
         # print('Reward:',self.reward,end=' ')
         self.time_step += 1
