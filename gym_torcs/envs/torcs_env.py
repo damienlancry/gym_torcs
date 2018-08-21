@@ -7,7 +7,9 @@ from gym import spaces
 
 
 class TorcsEnv(gym.Env):
+    ob = np.empty((19,))
     damage = 0.
+    dist_raced = 0.
     metadata = {'render.modes': ['human']}
     global_step = 0
 
@@ -26,22 +28,24 @@ class TorcsEnv(gym.Env):
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
-        # prev_dist_raced= self.dist_raced
+        self.prev_ob = self.ob
         prev_damage = self.damage
+        prev_dist_raced = self.dist_raced
+        self.prev_dist_raced = self.dist_raced
         ob = self._get_state()
-        # self.dist_from_start = self.client.S.d["distFromStart"]
+        self.ob = ob
         self.dist_raced = self.client.S.d["distRaced"]
         self.damage = self.client.S.d["damage"]
         self.progress_check = np.roll(self.progress_check, 1)
-        # self.progress_check[0] = self.dist_from_start  # prev_dist_raced
-        self.progress_check[0] = self.dist_raced  # prev_dist_raced
+        # self.progress_check[0] = self.dist_raced
         no_collision = prev_damage == self.damage
-        reward = ob[1]*np.cos(ob[0]) if no_collision else -1  # DEEPMIND
+        reward = self.dist_raced - prev_dist_raced # ob[1]*np.cos(ob[0])  # if no_collision else -1  # DEEPMIND
         done = self._is_done(ob)
         # print('Reward:',self.reward,end=' ')
         self.time_step += 1
         self.global_step += 1
         self.total_reward += reward
+        self.progress_check[0] = self.total_reward
         return ob, reward, done, {}
 
     def do_simulation(self, action, n_frames):
@@ -61,15 +65,20 @@ class TorcsEnv(gym.Env):
 
     def _is_done(self, ob):
         # Episode terminates if nan value BUG
-        # if np.isnan(self.dist_from_start):
-        #     print('NAN Value')
+        if np.isnan(ob).any():
+            print(self.prev_dist_raced)
+            print(self.dist_raced)
+            print(ob)
+            print(self.prev_ob)
+            print(self.client.S.server_string)
+            exit(1)
         #     return True
         # Episode is terminated if no progress is made along the track after
         # 500 frames. #DEEPMIND
         # if self.dist_from_start - self.progress_check[-1] <= 0:
         if self.dist_raced - self.progress_check[-1] <= 0:
             print('no progress was made along the track after 500 frames: \
-%d steps elapsed, reward: %d, global_step: %d, \
+%d steps elapsed, reward: %f, global_step: %d, \
 dist_raced: %f'
                   % (self.time_step, self.total_reward, self.global_step,
                      # self.dist_from_start))
@@ -91,11 +100,11 @@ dist_raced: %f'
 
     def end(self):
         # os.system('pkill torcs')
-        os.system('fuser -k %s/udp' % self.port)
+        os.system('fuser -s -k %s/udp' % self.port)
 
     def reset_torcs(self):
         # os.system('pkill torcs')
-        os.system('fuser -k %s/udp' % self.port)
+        os.system('fuser -s -k %s/udp' % self.port)
         os.system('torcs -nodamage -nofuel -nolaptime -p %d -r \
                   $HOME/.torcs/config/raceman/quickrace.xml &' % self.port)
 
