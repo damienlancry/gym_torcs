@@ -37,19 +37,19 @@ class Client():
             a = "-90 -80 -70 -60 -50 -40 -30 -20 -10 0 10 20 30 40 50 60 70 80 90"
             initmsg = '%s(init %s)' % (self.sid, a)
             # try:
-            print('\033[93m'+'Client sending initmsg'+'\033[0m')
+            # print('\033[93m'+'Client sending initmsg'+'\033[0m')
             self.so.sendto(initmsg.encode(), (self.host, self.port))
             sockdata = str()
             try:
                 sockdata, addr = self.so.recvfrom(16)
                 sockdata = sockdata.decode('utf-8')
-                print("Client receiving identified")
+                # print("Client receiving identified")
             except socket.error as emsg:
                 continue
 
             identify = '***identified***'  # 16 bits
             if identify in sockdata:
-                print("Client connected on %d.............." % self.port)
+                # print("Client connected on %d.............." % self.port)
                 break
 
     def get_servers_input(self):
@@ -74,6 +74,7 @@ class Client():
                 self.shutdown()
                 return
             else:
+                self.S.server_string = sockdata
                 self.S.str_to_dict(sockdata)
                 break
 
