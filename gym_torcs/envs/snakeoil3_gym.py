@@ -93,10 +93,10 @@ class Client():
     def shutdown(self):
         if not self.so:
             return
-        print(("Race terminated or %d steps elapsed. Shutting down %d."
-               % (self.maxSteps, self.port)))
+        print("Race terminated. Shutting down %d." % self.port)
         self.so.close()
         self.so = None
+        exit(0)
 
 
 class ServerState():
@@ -121,7 +121,7 @@ class DriverAction():
     (accel 1)(brake 0)(gear 1)(steer 0)(clutch 0)(focus -90 -45 0 45 90)(meta 0)
     '''
     def __init__(self):
-        self.d = {'accel': 0.2,
+        self.d = {'accel': 1.,
                   'brake': 0,
                   'clutch': 0,
                   'gear': 1,
@@ -166,22 +166,22 @@ def drive_example(c):
     #    R['accel']-= .2
 
     # Automatic Transmission
-    R['gear'] = 1
-    if S['speedX'] > 50:
-        R['gear'] = 2
-    if S['speedX'] > 80:
-        R['gear'] = 3
-    if S['speedX'] > 110:
-        R['gear'] = 4
-    if S['speedX'] > 140:
-        R['gear'] = 5
-    if S['speedX'] > 170:
-        R['gear'] = 6
+    # R['gear'] = 1
+    # if S['speedX'] > 50:
+    #     R['gear'] = 2
+    # if S['speedX'] > 80:
+    #     R['gear'] = 3
+    # if S['speedX'] > 110:
+    #     R['gear'] = 4
+    # if S['speedX'] > 140:
+    #     R['gear'] = 5
+    # if S['speedX'] > 170:
+    #     R['gear'] = 6
 
     # Clip to limits
-    R['steer'] = clip(R['steer'], 0, 0)
-    R['brake'] = clip(R['brake'], 0, 0)
-    R['accel'] = clip(R['accel'], 0, 0)
+    R['steer'] = clip(R['steer'], -1, 1)
+    R['brake'] = clip(R['brake'], 0, 1)
+    R['accel'] = clip(R['accel'], 0, 1)
     R['clutch'] = clip(R['clutch'], 0, 1)
     if R['gear'] not in [-1, 0, 1, 2, 3, 4, 5, 6]:
         R['gear'] = 0
