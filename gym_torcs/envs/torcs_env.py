@@ -15,8 +15,8 @@ class TorcsEnv(gym.Env):
     def __init__(self, frame_skip=5, port=3001):
         self.port = port
         self.frame_skip = frame_skip
-        high = np.array([ 1.])  # , 1.])  # , 1.])
-        low  = np.array([-1.])  # , 0.])  # , 0.])
+        high = np.array([ 1., 1., 1.])
+        low  = np.array([-1., 0., 0.])
         self.action_space = spaces.Box(low=low, high=high, dtype=np.float32)
         high = np.concatenate((np.array([ np.pi,  np.inf,  np.inf,  1.]), 200.*np.ones(19)))  # angle speedX speedY trackPos track
         low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),-200.*np.ones(19)))
@@ -88,7 +88,6 @@ class TorcsEnv(gym.Env):
         self.dist_raced = 0
         self.progress_check = -0.1 * np.ones(500)
         ob = self._get_state()
-
         return ob
 
     # def seed(self,seed=None):
