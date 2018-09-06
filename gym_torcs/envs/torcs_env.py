@@ -33,7 +33,6 @@ class TorcsEnv(gym.Env):
         done = self._is_done()
         self.dist_raced = self.client.S.d["distRaced"]  # - self.offset
         self.reward = self.dist_raced - prev_dist_raced # ob[1]*np.cos(ob[0])  # if no_collision else -1  # DEEPMIND
-        self.reward = self.dist_raced - prev_dist_raced # ob[1]*np.cos(ob[0])  # if no_collision else -1  # DEEPMIND
         self.time_step += 1
         self.global_step += 1
         self.total_reward += self.reward
