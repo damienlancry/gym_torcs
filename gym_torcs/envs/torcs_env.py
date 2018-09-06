@@ -43,8 +43,8 @@ class TorcsEnv(gym.Env):
 
     def do_simulation(self, action, n_frames):
         self.client.R.d["steer"] = action[0]
-        # self.client.R.d["accel"] = action[1]
-        # self.client.R.d["brake"] = action[1]
+        self.client.R.d["accel"] = action[1]
+        self.client.R.d["brake"] = action[2]
         for _ in range(n_frames):
             self.client.respond_to_server()
 
