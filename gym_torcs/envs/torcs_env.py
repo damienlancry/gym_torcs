@@ -59,6 +59,10 @@ class TorcsEnv(gym.Env):
         print("time_steps %d, global_step: %d, dist_raced: %f" % (self.time_step, self.global_step, self.total_reward))
 
     def _is_done(self):
+        if abs(self.client.S.d['trackPos']) > 1:
+            print("OUT OF TRACK: ",end = "")
+            self.termination_message()
+            return True
         if self.dist_raced - self.progress_check[-1] <= 0:
             print("no progress along the track after 500 frames: ",end = "")
             self.termination_message()
