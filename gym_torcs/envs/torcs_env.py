@@ -104,7 +104,7 @@ class TorcsEnv(gym.Env):
     def render(self, mode='human', close=False):
         pass
 
-    def end(self):
+    def close(self):
         os.system('fuser -s -k %s/udp' % self.port)
 
 
@@ -118,4 +118,4 @@ if __name__ == '__main__':
             o, r, d, i = env.step(action)
             end = time.time()
             print(end-start)
-    env.end()
+    env.close()
