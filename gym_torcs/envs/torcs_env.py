@@ -16,17 +16,16 @@ class TorcsEnv(gym.Env):
         low  = np.array([-1., 0., 0.])
         self.action_space      = spaces.Box(low=low, high=high, dtype=np.float32)
         high = np.concatenate((np.array([ np.pi,  np.inf,  np.inf,  1.]), 200.*np.ones(19)))  # angle speedX speedY trackPos track
-        low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),-200.*np.ones(19)))
+        low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),  -1.*np.ones(19)))
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
         ob           = self._get_state()
         reward       = ob[1]*np.cos(ob[0])
-        done         = abs(ob[3]) > 1  or self.time_step >= 30000
+        done         = abs(ob[3]) > 1
         self.ret    += reward
         self.time_step+= 1
-        if done: print(self.ret,self.time_step)
         return ob, reward, done, {}
 
     def do_simulation(self, action, n_frames):
