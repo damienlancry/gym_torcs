@@ -12,35 +12,35 @@ class TorcsEnv(gym.Env):
     def __init__(self, frame_skip=5, port=3001):
         self.port       = port
         self.frame_skip = frame_skip
-        high = np.array([ 1., 1., 1.])
-        low  = np.array([-1., 0., 0.])
+        high = np.array([ 1.])
+        low  = np.array([-1.])
         self.action_space      = spaces.Box(low=low, high=high, dtype=np.float32)
-        high = np.concatenate((np.array([ np.pi,  np.inf,  1.]), 200.*np.ones(19)))  # angle speedX speedY trackPos track
-        low  = np.concatenate((np.array([-np.pi, -np.inf, -1.]),-200.*np.ones(19)))
+        high = np.concatenate((np.array([ np.pi,  np.inf,  np.inf,  1.]), 200.*np.ones(19)))  # angle speedX speedY trackPos track
+        low  = np.concatenate((np.array([-np.pi, -np.inf, -np.inf, -1.]),  -1.*np.ones(19)))
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
         ob           = self._get_state()
-        reward       = ob[1]*np.cos(ob[0])
-        done         = abs(ob[2]) > 1  or self.time_step >= 30000
+        reward       = ob[1]*np.cos(ob[0]) - ob[1]*abs(np.sin(ob[0])) - ob[1]*abs(ob[3])
+        done         = abs(ob[3]) > 1
         self.ret    += reward
         self.time_step+= 1
-        if done: print(self.ret,self.time_step)
         return ob, reward, done, {}
 
     def do_simulation(self, action, n_frames):
         self.client.R.d["steer"] = action[0]
-        self.client.R.d["accel"] = action[1]
-        self.client.R.d["brake"] = action[2]
+        self.client.R.d["accel"] = 1
+        self.client.R.d["brake"] = 0
+        # self.client.R.d["accel"] = action[1]
+        # self.client.R.d["brake"] = action[2]
         for _ in range(n_frames):
             self.client.respond_to_server()
 
     def _get_state(self):
         self.client.get_servers_input()
         raw_obs = self.client.S.d
-        # ob = np.array([raw_obs[sensor] for sensor in ['angle', 'speedX', 'speedY', 'trackPos']])
-        ob = np.array([raw_obs[sensor] for sensor in ['angle', 'speedX', 'trackPos']])
+        ob = np.array([raw_obs[sensor] for sensor in ['angle', 'speedX', 'speedY', 'trackPos']])
         ob = np.concatenate((ob, raw_obs['track']))
         return(ob)
 
@@ -53,7 +53,6 @@ class TorcsEnv(gym.Env):
         return ob
 
     def reset_torcs(self):
-        print(self.port)
         os.system('fuser -s -k %s/udp' % self.port)
         os.system('torcs -nodamage -nofuel -nolaptime -p %d -r \
                   $HOME/.torcs/config/raceman/quickrace.xml &' % self.port)
