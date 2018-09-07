@@ -22,7 +22,7 @@ class TorcsEnv(gym.Env):
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
         ob           = self._get_state()
-        reward       = ob[1]*np.cos(ob[0])
+        reward       = ob[1]*np.cos(ob[0]) - ob[1]*abs(np.sin(ob[0])) - ob[1]*abs(ob[3])
         done         = abs(ob[3]) > 1
         self.ret    += reward
         self.time_step+= 1
